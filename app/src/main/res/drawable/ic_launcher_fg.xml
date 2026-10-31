@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Столбчатая диаграмма: значок дашборда. Холст 108x108, безопасная зона 66x66 в центре. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF" android:pathData="M36,58h8v16h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M50,44h8v30h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M64,34h8v40h-8z" />
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.6" android:pathData="M33,77h42v3h-42z" />
+</vector>

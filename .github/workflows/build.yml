@@ -1,0 +1,49 @@
+name: Сборка APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Сборка
+        run: gradle :app:assembleRelease --no-daemon
+
+      - name: Имя файла с версией
+        id: ver
+        run: |
+          V=$(grep -oP 'appVersionName = "\K[^"]+' app/build.gradle.kts)
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+          cp app/build/outputs/apk/release/app-release.apk "Dashboard_v$V.apk"
+          cp app/build/outputs/apk/release/app-release.apk Dashboard.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dashboard_v${{ steps.ver.outputs.v }}
+          path: Dashboard_v${{ steps.ver.outputs.v }}.apk
+
+      - name: Публикация в Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ steps.ver.outputs.v }}"
+          gh release delete "$TAG" -y --cleanup-tag || true
+          gh release create "$TAG" "Dashboard_v${{ steps.ver.outputs.v }}.apk" Dashboard.apk \
+            --title "Дашборд $TAG" --notes "Сборка от $(date -u +%d.%m.%Y\ %H:%M) UTC" --latest
