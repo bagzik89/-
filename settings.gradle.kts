@@ -7,3 +7,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Dashboard"
 include(":app")
+include(":breaks")

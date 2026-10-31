@@ -24,7 +24,7 @@ jobs:
           gradle-version: '8.9'
 
       - name: Сборка
-        run: gradle :app:assembleRelease --no-daemon
+        run: gradle :app:assembleRelease :breaks:assembleRelease --no-daemon
 
       - name: Имя файла с версией
         id: ver
@@ -34,10 +34,23 @@ jobs:
           cp app/build/outputs/apk/release/app-release.apk "Dashboard_v$V.apk"
           cp app/build/outputs/apk/release/app-release.apk Dashboard.apk
 
+      - name: Имя файла «Перерывы»
+        id: bver
+        run: |
+          V=$(grep -oP 'appVersionName = "\K[^"]+' breaks/build.gradle.kts)
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+          cp breaks/build/outputs/apk/release/breaks-release.apk "Breaks_v$V.apk"
+          cp breaks/build/outputs/apk/release/breaks-release.apk Breaks.apk
+
       - uses: actions/upload-artifact@v4
         with:
           name: Dashboard_v${{ steps.ver.outputs.v }}
           path: Dashboard_v${{ steps.ver.outputs.v }}.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Breaks_v${{ steps.bver.outputs.v }}
+          path: Breaks_v${{ steps.bver.outputs.v }}.apk
 
       - name: Публикация в Releases
         env:
@@ -47,3 +60,12 @@ jobs:
           gh release delete "$TAG" -y --cleanup-tag || true
           gh release create "$TAG" "Dashboard_v${{ steps.ver.outputs.v }}.apk" Dashboard.apk \
             --title "Дашборд $TAG" --notes "Сборка от $(date -u +%d.%m.%Y\ %H:%M) UTC" --latest
+
+      - name: Публикация «Перерывы» в Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="breaks-v${{ steps.bver.outputs.v }}"
+          gh release delete "$TAG" -y --cleanup-tag || true
+          gh release create "$TAG" "Breaks_v${{ steps.bver.outputs.v }}.apk" Breaks.apk \
+            --title "Перерывы $TAG" --notes "Приложение «Расписание перерывов». Сборка от $(date -u +%d.%m.%Y\ %H:%M) UTC" --latest=false
